@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  invitations  Invitation[]
+}
+
+model Invitation {
+  id               String        @id @default(cuid())
+  ownerId          String
+  owner            User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  slug             String        @unique
+  brideName        String
+  groomName        String
+  brideFamilyName  String?
+  groomFamilyName  String?
+  coverMediaUrl    String?
+  bridePhotoUrl    String?
+  groomPhotoUrl    String?
+  description      String?
+  themeKey         String        @default("elegant-minimal") // "elegant-minimal" | "kerala-traditional"
+  ceremonyTemplate String        @default("christian") // christian | hindu | nikah | secular
+  defaultLanguage  String        @default("en")
+  status           String        @default("draft") // draft | published
+  privacyMode      String        @default("public") // public | password
+  passwordHash     String?
+  rsvpEnabled      Boolean       @default(true)
+  weddingDate      DateTime?
+  weddingTime      String?
+  timezone         String        @default("Asia/Kolkata")
+  venueName        String?
+  venueAddress     String?
+  city             String?
+  state            String?       @default("Kerala")
+  country          String        @default("India")
+  latitude         Float?
+  longitude        Float?
+  dressCode        String?
+  travelInfo       String?
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  events           Event[]
+  galleryItems     GalleryItem[]
+  storyItems       StoryItem[]
+  rsvps            Rsvp[]
+}
+
+model Event {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  name         String
+  ceremonyType String?    // Mehendi, Haldi, Muhurtham, Church Wedding, Reception, etc.
+  startAt      DateTime?
+  endAt        DateTime?
+  venueName    String?
+  venueAddress String?
+  latitude     Float?
+  longitude    Float?
+  description  String?
+  dressCode    String?
+  rsvpDeadline DateTime?
+  sortOrder    Int        @default(0)
+  isVisible    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  rsvps        Rsvp[]
+}
+
+model GalleryItem {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  caption      String?
+  category     String?    // childhood | travel | engagement | pre-wedding
+  sortOrder    Int        @default(0)
+  isFeatured   Boolean    @default(false)
+  isVisible    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+}
+
+model StoryItem {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  title        String
+  eventDate    String?    // e.g. "2018", "December 2021"
+  description  String
+  imageUrl     String?
+  sortOrder    Int        @default(0)
+  isVisible    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+}
+
+model Rsvp {
+  id             String      @id @default(cuid())
+  invitationId   String
+  invitation     Invitation  @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  eventId        String?
+  event          Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  guestName      String
+  guestEmail     String?
+  guestPhone     String?
+  status         String      // accepted | declined | maybe
+  guestCount     Int         @default(1)
+  mealPreference String?     // vegetarian | non-vegetarian | jain
+  message        String?
+  respondedAt    DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
