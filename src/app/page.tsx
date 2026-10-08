@@ -4,7 +4,6 @@ import { Navbar } from "@/components/Navbar";
 import {
   Heart,
   QrCode,
-  ShieldCheck,
   CalendarDays,
   Smartphone,
   Sparkles,
@@ -12,10 +11,6 @@ import {
   CheckCircle2,
   Lock,
   MapPin,
-  Camera,
-  Share2,
-  Clock,
-  Sparkle,
 } from "lucide-react";
 
 export default function HomePage() {

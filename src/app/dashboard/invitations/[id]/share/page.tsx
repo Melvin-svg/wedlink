@@ -9,13 +9,10 @@ import { Navbar } from "@/components/Navbar";
 import { ShareSheet } from "@/components/invitation/ShareSheet";
 import {
   ArrowLeft,
-  QrCode,
   Download,
-  Share2,
   ExternalLink,
   Shield,
   Globe,
-  Sparkles,
 } from "lucide-react";
 
 interface SharePageProps {

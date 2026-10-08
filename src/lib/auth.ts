@@ -3,9 +3,22 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "wedlink-default-fallback-secret-key-32chars!"
-);
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV === "production") {
+    if (!secret || secret.length < 32) {
+      throw new Error(
+        "FATAL: AUTH_SECRET environment variable is missing or less than 32 characters in production."
+      );
+    }
+    return new TextEncoder().encode(secret);
+  }
+  return new TextEncoder().encode(
+    secret || "wedlink-dev-only-secret-key-do-not-use-in-prod-32chars"
+  );
+}
+
+const JWT_SECRET = getJwtSecret();
 
 const SESSION_COOKIE_NAME = "wedlink_session";
 

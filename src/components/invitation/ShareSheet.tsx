@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Share2, Check, MessageCircle, Copy } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { Check, MessageCircle, Copy } from "lucide-react";
 
 interface ShareSheetProps {
   slug: string;
@@ -9,25 +9,30 @@ interface ShareSheetProps {
   initialBaseUrl?: string;
 }
 
+const emptySubscribe = () => () => {};
+
 export function ShareSheet({ slug, coupleTitle, initialBaseUrl }: ShareSheetProps) {
   const [copied, setCopied] = useState(false);
-  const [fullUrl, setFullUrl] = useState<string>(() => {
+  const clientOrigin = useSyncExternalStore(
+    emptySubscribe,
+    () => window.location.origin,
+    () => ""
+  );
+
+  const fullUrl = (() => {
+    if (clientOrigin) {
+      if (
+        clientOrigin.includes("localhost") &&
+        initialBaseUrl &&
+        !initialBaseUrl.includes("localhost")
+      ) {
+        return `${initialBaseUrl}/invite/${slug}`;
+      }
+      return `${clientOrigin}/invite/${slug}`;
+    }
     if (initialBaseUrl) return `${initialBaseUrl}/invite/${slug}`;
     return `http://localhost:3000/invite/${slug}`;
-  });
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // If the current browser window is accessing via a custom IP/domain, use that origin!
-      const origin = window.location.origin;
-      // If origin is localhost and an initialBaseUrl with a LAN IP was provided by server, prefer the LAN IP for mobile sharing
-      if (origin.includes("localhost") && initialBaseUrl && !initialBaseUrl.includes("localhost")) {
-        setFullUrl(`${initialBaseUrl}/invite/${slug}`);
-      } else {
-        setFullUrl(`${origin}/invite/${slug}`);
-      }
-    }
-  }, [slug, initialBaseUrl]);
+  })();
 
   const whatsappText = encodeURIComponent(
     `✨ You are warmly invited to celebrate the wedding of ${coupleTitle}! 💍\n\nView our schedule, directions, photos & kindly RSVP here:\n${fullUrl}`

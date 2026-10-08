@@ -23,5 +23,16 @@ export default async function EditInvitationPage({ params }: EditPageProps) {
 
   if (!invitation) notFound();
 
-  return <InvitationBuilder initialData={invitation} />;
+  // Strip sensitive passwordHash before passing data to Client Component
+  const hasPassword = Boolean(invitation.passwordHash);
+  const safeInvitation = { ...invitation, passwordHash: undefined };
+
+  return (
+    <InvitationBuilder
+      initialData={{
+        ...safeInvitation,
+        hasPassword,
+      }}
+    />
+  );
 }

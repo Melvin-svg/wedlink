@@ -11,15 +11,12 @@ import {
   Calendar,
   Users,
   QrCode,
-  Share2,
   Sparkles,
   Lock,
   Globe,
   Clock,
   ArrowRight,
-  TrendingUp,
   HeartHandshake,
-  ExternalLink,
 } from "lucide-react";
 
 export const metadata = {

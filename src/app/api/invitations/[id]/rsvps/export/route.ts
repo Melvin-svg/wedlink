@@ -42,7 +42,12 @@ export async function GET(
 
     const escapeCsv = (val: string | null | undefined) => {
       if (!val) return '""';
-      const clean = String(val).replace(/"/g, '""');
+      let clean = String(val);
+      // Neutralize formula injection / DDE vulnerability in Excel and Google Sheets
+      if (/^[=+\-@\t\r]/.test(clean)) {
+        clean = `'${clean}`;
+      }
+      clean = clean.replace(/"/g, '""');
       return `"${clean}"`;
     };
 

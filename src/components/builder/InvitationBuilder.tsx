@@ -9,7 +9,6 @@ import {
   Heart,
   Calendar,
   Clock,
-  MapPin,
   Image as ImageIcon,
   BookOpen,
   Palette,
@@ -23,8 +22,8 @@ import {
   Loader2,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
 } from "lucide-react";
+import { toDateTimeLocalInput, toDateInput } from "@/lib/datetime";
 
 interface InvitationBuilderProps {
   initialData: {
@@ -43,6 +42,7 @@ interface InvitationBuilderProps {
     defaultLanguage: string;
     status: string;
     privacyMode: string;
+    hasPassword?: boolean;
     rsvpEnabled: boolean;
     weddingDate?: string | Date | null;
     weddingTime?: string | null;
@@ -92,17 +92,15 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Builder form state
+  // Builder form state with timezone-aware datetime helpers
   const [form, setForm] = useState({
     ...initialData,
-    weddingDate: initialData.weddingDate
-      ? new Date(initialData.weddingDate).toISOString().split("T")[0]
-      : "",
+    weddingDate: toDateInput(initialData.weddingDate, initialData.timezone),
     invitationPassword: "",
     events: initialData.events.map((e) => ({
       ...e,
-      startAt: e.startAt ? new Date(e.startAt).toISOString().slice(0, 16) : "",
-      endAt: e.endAt ? new Date(e.endAt).toISOString().slice(0, 16) : "",
+      startAt: toDateTimeLocalInput(e.startAt, initialData.timezone),
+      endAt: toDateTimeLocalInput(e.endAt, initialData.timezone),
     })),
     storyItems: initialData.storyItems,
     galleryItems: initialData.galleryItems,
@@ -144,6 +142,16 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
     setErrorMessage("");
     setSaveSuccess(false);
 
+    if (
+      form.privacyMode === "password" &&
+      !initialData.hasPassword &&
+      (!form.invitationPassword || form.invitationPassword.trim().length < 4)
+    ) {
+      setErrorMessage("Please enter an invitation passcode of at least 4 characters.");
+      setSaving(false);
+      return false;
+    }
+
     const res = await updateInvitationAction(initialData.id, {
       brideName: form.brideName,
       groomName: form.groomName,
@@ -172,6 +180,7 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
       status: form.status as "draft" | "published",
       rsvpEnabled: form.rsvpEnabled,
       events: form.events.map((e, idx) => ({
+        id: e.id,
         name: e.name,
         ceremonyType: e.ceremonyType,
         startAt: e.startAt || null,
@@ -183,6 +192,7 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
         sortOrder: idx,
       })),
       storyItems: form.storyItems.map((s, idx) => ({
+        id: s.id,
         title: s.title,
         eventDate: s.eventDate,
         description: s.description,
@@ -190,6 +200,7 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
         sortOrder: idx,
       })),
       galleryItems: form.galleryItems.map((g, idx) => ({
+        id: g.id,
         imageUrl: g.imageUrl,
         caption: g.caption,
         category: g.category,
@@ -1081,11 +1092,17 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
                   type="text"
                   value={form.invitationPassword}
                   onChange={(e) => handleFieldChange("invitationPassword", e.target.value)}
-                  placeholder="e.g. MEENU2026"
+                  placeholder={
+                    initialData.hasPassword
+                      ? "•••••••• (leave blank to keep current passcode)"
+                      : "e.g. MEENU2026 (min 4 characters)"
+                  }
                   className="w-full px-4 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-mono tracking-wider focus:outline-none"
                 />
                 <span className="text-[11px] text-amber-800 mt-1 block">
-                  Share this passcode along with your wedding card or WhatsApp message.
+                  {initialData.hasPassword
+                    ? "Passcode protection is currently active. Leave blank to keep existing passcode, or type a new one to change it."
+                    : "Enter a passcode with at least 4 characters to share with your guests."}
                 </span>
               </div>
             )}

@@ -6,14 +6,9 @@ import { Navbar } from "@/components/Navbar";
 import {
   ArrowLeft,
   Download,
-  Users,
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Mail,
-  Phone,
-  MessageSquare,
-  Clock,
 } from "lucide-react";
 
 interface RsvpsPageProps {
