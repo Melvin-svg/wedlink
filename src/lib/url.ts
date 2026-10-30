@@ -10,14 +10,24 @@ import { headers } from "next/headers";
  * 3. Fallback to origin or LAN IP:3000.
  */
 export async function getInvitationBaseUrl(): Promise<string> {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
-    return envUrl.replace(/\/$/, "");
+  let envUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (envUrl) {
+    envUrl = envUrl.trim().replace(/^["']|["']$/g, "").replace(/\/$/, "");
+    if (!envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+      if (!envUrl.startsWith("http://") && !envUrl.startsWith("https://")) {
+        envUrl = `https://${envUrl}`;
+      }
+      return envUrl;
+    }
   }
 
   // Vercel Preview deployments provide dynamic host via VERCEL_URL
   if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+    let vercelUrl = process.env.VERCEL_URL.trim().replace(/^["']|["']$/g, "").replace(/\/$/, "");
+    if (!vercelUrl.startsWith("http://") && !vercelUrl.startsWith("https://")) {
+      vercelUrl = `https://${vercelUrl}`;
+    }
+    return vercelUrl;
   }
 
   // Get local Wi-Fi / LAN IP

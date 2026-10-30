@@ -23,12 +23,28 @@ const malayalam = Noto_Serif_Malayalam({
   display: "swap",
 });
 
-const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+function getSafeMetadataBase(): URL {
+  const raw =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+
+  if (raw) {
+    let sanitized = raw.trim().replace(/^["']|["']$/g, "").replace(/\/$/, "");
+    if (sanitized && !sanitized.startsWith("http://") && !sanitized.startsWith("https://")) {
+      sanitized = `https://${sanitized}`;
+    }
+    try {
+      return new URL(sanitized);
+    } catch {
+      // Fallback if still invalid
+    }
+  }
+
+  return new URL("http://localhost:3000");
+}
 
 export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
+  metadataBase: getSafeMetadataBase(),
   title: {
     default: "WedLink — Your wedding. One private link. Every memory.",
     template: "%s · WedLink",
