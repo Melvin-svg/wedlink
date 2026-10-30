@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { calculateTimeLeft, TimeLeft } from "@/lib/countdown";
 
 interface CountdownProps {
   targetDate: string | Date | null | undefined;
@@ -15,58 +16,20 @@ export function Countdown({
   accentClass = "text-amber-700",
   cardClass = "bg-white/80 border border-stone-200/80 shadow-sm backdrop-blur-sm",
 }: CountdownProps) {
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isPast: boolean;
-    isToday: boolean;
-  } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() => {
+    return calculateTimeLeft(targetDate, weddingTime);
+  });
 
   useEffect(() => {
     if (!targetDate) return;
 
-    const calculate = () => {
-      const now = new Date();
-      const target = new Date(targetDate);
-      if (weddingTime) {
-        const [time, modifier] = weddingTime.split(" ");
-        if (time) {
-          const parts = time.split(":").map(Number);
-          let hours = parts[0] || 0;
-          const mins = parts[1] || 0;
-          if (modifier?.toLowerCase() === "pm" && hours < 12) hours += 12;
-          if (modifier?.toLowerCase() === "am" && hours === 12) hours = 0;
-          target.setHours(hours, mins, 0, 0);
-        }
-      }
-
-      const diff = target.getTime() - now.getTime();
-      const isToday =
-        now.getFullYear() === target.getFullYear() &&
-        now.getMonth() === target.getMonth() &&
-        now.getDate() === target.getDate();
-
-      if (diff <= 0) {
-        if (isToday) {
-          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isPast: false, isToday: true });
-        } else {
-          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true, isToday: false });
-        }
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      setTimeLeft({ days, hours, minutes, seconds, isPast: false, isToday: false });
+    const tick = () => {
+      const res = calculateTimeLeft(targetDate, weddingTime);
+      setTimeLeft(res);
     };
 
-    calculate();
-    const interval = setInterval(calculate, 1000);
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [targetDate, weddingTime]);
 

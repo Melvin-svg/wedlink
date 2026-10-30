@@ -22,8 +22,12 @@ import {
   Loader2,
   ArrowRight,
   ArrowLeft,
+  Sparkles,
+  Filter,
 } from "lucide-react";
 import { toDateTimeLocalInput, toDateInput } from "@/lib/datetime";
+import { Countdown } from "@/components/invitation/Countdown";
+import { getDaysRemaining } from "@/lib/countdown";
 
 interface InvitationBuilderProps {
   initialData: {
@@ -91,6 +95,7 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [themeFilter, setThemeFilter] = useState<string>("all");
 
   // Builder form state with timezone-aware datetime helpers
   const [form, setForm] = useState({
@@ -423,6 +428,50 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
               </p>
             </div>
 
+            {/* Ceremony Tradition & Religious Heritage Selector */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border border-amber-200/90 shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Ceremony Tradition &amp; Heritage
+                </span>
+                <span className="text-[11px] text-amber-800 font-medium">
+                  Optimizes cultural wording &amp; theme recommendations
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+                {[
+                  { id: "christian", label: "✝️ Christian", title: "Holy Matrimony" },
+                  { id: "hindu", label: "🕉️ Hindu", title: "Vedic Vivah" },
+                  { id: "nikah", label: "☪️ Muslim", title: "Islamic Nikah" },
+                  { id: "sikh", label: "☬ Sikh", title: "Anand Karaj" },
+                  { id: "secular", label: "🕊️ Secular", title: "Contemporary" },
+                ].map((trad) => {
+                  const isSelected = form.ceremonyTemplate === trad.id;
+                  return (
+                    <button
+                      key={trad.id}
+                      type="button"
+                      onClick={() => handleFieldChange("ceremonyTemplate", trad.id)}
+                      className={`p-2.5 rounded-xl text-left border transition cursor-pointer ${
+                        isSelected
+                          ? "bg-stone-900 text-white border-stone-900 shadow-md ring-2 ring-stone-900/10"
+                          : "bg-white text-stone-700 border-stone-200 hover:border-amber-300 hover:bg-amber-50/50"
+                      }`}
+                    >
+                      <div className="text-xs font-bold">{trad.label}</div>
+                      <div
+                        className={`text-[10px] truncate mt-0.5 ${
+                          isSelected ? "text-amber-300 font-medium" : "text-stone-500"
+                        }`}
+                      >
+                        {trad.title}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">
@@ -561,6 +610,22 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
                 />
               </div>
             </div>
+
+            {form.weddingDate && (() => {
+              const cd = getDaysRemaining(form.weddingDate, form.weddingTime);
+              if (!cd) return null;
+              return (
+                <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-700" />
+                    <span className="text-xs font-semibold text-stone-700">Live Countdown to Wedding:</span>
+                  </div>
+                  <span className="text-xs font-bold font-serif text-amber-900 bg-white px-3 py-1 rounded-full border border-amber-200 shadow-2xs">
+                    {cd.label}
+                  </span>
+                </div>
+              );
+            })()}
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">
@@ -956,63 +1021,291 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
           </div>
         )}
 
-        {/* STEP 6: Theme System */}
+        {/* STEP 6: Theme System — Cultural Wedding Themes */}
         {currentStep === 6 && (
-          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-stone-900">Choose Visual Theme</h2>
-              <p className="text-xs text-stone-500 mt-1">
-                Both themes render all your details seamlessly. You can switch at any time.
-              </p>
+          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-stone-200 shadow-sm space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/70 border border-amber-200 text-amber-900 text-[11px] font-semibold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Cultural &amp; Religious Aesthetics
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
+                  Choose Your Cultural Theme
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-xl">
+                  Each theme is crafted with authentic religious blessings, customary motifs, and regional aesthetics. All themes render your events, countdown, and RSVPs seamlessly.
+                </p>
+              </div>
+
+              {/* Ceremony Badge */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-3 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 text-base font-bold">
+                  {form.ceremonyTemplate === "christian"
+                    ? "✝️"
+                    : form.ceremonyTemplate === "hindu"
+                    ? "🕉️"
+                    : form.ceremonyTemplate === "nikah"
+                    ? "☪️"
+                    : form.ceremonyTemplate === "sikh"
+                    ? "☬"
+                    : "🕊️"}
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-amber-800 font-bold block">
+                    Active Ceremony Tradition
+                  </span>
+                  <span className="text-xs font-serif font-bold text-stone-900 capitalize">
+                    {form.ceremonyTemplate === "christian"
+                      ? "Christian Matrimony"
+                      : form.ceremonyTemplate === "hindu"
+                      ? "Hindu Vivah"
+                      : form.ceremonyTemplate === "nikah"
+                      ? "Muslim Nikah"
+                      : form.ceremonyTemplate === "sikh"
+                      ? "Sikh Anand Karaj"
+                      : "Contemporary Secular"}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Theme 1 */}
-              <div
-                onClick={() => handleFieldChange("themeKey", "elegant-minimal")}
-                className={`p-6 rounded-3xl border-2 cursor-pointer transition-all ${
-                  form.themeKey === "elegant-minimal"
-                    ? "border-stone-900 bg-stone-50 ring-2 ring-stone-900/10 shadow-md"
-                    : "border-stone-200 hover:border-stone-300 bg-white"
-                }`}
-              >
-                <div className="h-32 rounded-2xl bg-[#faf8f5] border border-stone-200 flex flex-col items-center justify-center p-4 text-center mb-4">
-                  <span className="font-serif italic text-lg text-stone-800">Melvin &amp; Meenu</span>
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mt-1">
-                    DECEMBER 20, 2026
-                  </span>
-                </div>
-                <h3 className="font-serif font-bold text-stone-900 text-base">Elegant Minimal</h3>
-                <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                  Refined editorial typography, warm stone neutral palettes, and tranquil whitespace.
-                </p>
-              </div>
+            {/* Religious / Cultural Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-400 mr-2 flex items-center gap-1">
+                <Filter className="w-3 h-3" /> Filter:
+              </span>
+              {[
+                { id: "all", label: "🌟 All Traditions (7)" },
+                { id: "christian", label: "✝️ Christian (2)" },
+                { id: "hindu", label: "🕉️ Hindu (3)" },
+                { id: "nikah", label: "☪️ Muslim Nikah (1)" },
+                { id: "sikh", label: "☬ Sikh / Punjabi (1)" },
+                { id: "secular", label: "🕊️ Contemporary (1)" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setThemeFilter(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
+                    themeFilter === tab.id
+                      ? "bg-stone-900 text-white shadow-sm"
+                      : "bg-stone-100 hover:bg-stone-200 text-stone-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-              {/* Theme 2 */}
-              <div
-                onClick={() => handleFieldChange("themeKey", "kerala-traditional")}
-                className={`p-6 rounded-3xl border-2 cursor-pointer transition-all ${
-                  form.themeKey === "kerala-traditional"
-                    ? "border-amber-700 bg-amber-50/60 ring-2 ring-amber-700/20 shadow-md"
-                    : "border-stone-200 hover:border-stone-300 bg-white"
-                }`}
-              >
-                <div className="h-32 rounded-2xl bg-[#fffdf5] border-2 border-amber-300/80 flex flex-col items-center justify-center p-4 text-center mb-4 relative overflow-hidden">
-                  <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
-                  <span className="font-serif font-bold text-lg text-amber-950">
-                    മെൽവിൻ &amp; മീനു
-                  </span>
-                  <span className="text-[10px] tracking-widest uppercase text-amber-800 font-semibold mt-1">
-                    മംഗള മുഹൂർത്തം ✦ KASAVU
-                  </span>
-                </div>
-                <h3 className="font-serif font-bold text-stone-900 text-base">
-                  Kerala Traditional (കേരളം)
-                </h3>
-                <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                  Golden Kasavu borders, auspicious lamp motifs, and localized Malayalam styling.
-                </p>
-              </div>
+            {/* Themes Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  key: "christian-matrimony",
+                  title: "Cathedral Holy Matrimony",
+                  category: "christian",
+                  categoryLabel: "✝️ Christian Matrimony",
+                  languageLabel: "English • Scripture Mark 10:9",
+                  paletteName: "Ivory & Champagne Gold",
+                  previewSnippet: "Holy Matrimony ✦ Cathedral",
+                  previewCouple: `${form.brideName || "Bride"} & ${form.groomName || "Groom"}`,
+                  gradientBar: "from-amber-300 via-amber-500 to-amber-300",
+                  previewBg: "bg-[#faf8f5] border-amber-300/80",
+                  colorDots: ["#faf8f5", "#d4af37", "#4a5d4e", "#2c2a29"],
+                  description:
+                    "Cathedral arches, sacred scripture card (Mark 10:9), ivory/gold aesthetic, liturgical schedule.",
+                  isRecommended: form.ceremonyTemplate === "christian",
+                },
+                {
+                  key: "kerala-traditional",
+                  title: "Kerala Kasavu Traditional",
+                  category: "hindu",
+                  categoryLabel: "🕉️ Kerala Hindu",
+                  languageLabel: "Malayalam (മലയാളം)",
+                  paletteName: "Kasavu Gold & Ivory",
+                  previewSnippet: "മംഗള മുഹൂർത്തം ✦ KASAVU",
+                  previewCouple: "മെൽവിൻ & മീനു",
+                  gradientBar: "from-amber-500 via-yellow-400 to-amber-600",
+                  previewBg: "bg-[#fffdf5] border-amber-300/80",
+                  colorDots: ["#fffdf5", "#d97706", "#b45309", "#78350f"],
+                  description:
+                    "Authentic golden Kasavu borders, auspicious Nilavilakku lamp, jasmine motifs, Malayalam styling.",
+                  isRecommended: form.ceremonyTemplate === "hindu",
+                },
+                {
+                  key: "royal-rajasthani",
+                  title: "Royal Rajasthani & North Indian",
+                  category: "hindu",
+                  categoryLabel: "🕉️ North Indian / Hindu",
+                  languageLabel: "Hindi (हिंदी) • Sanskrit Shlokas",
+                  paletteName: "Imperial Maroon & Gold",
+                  previewSnippet: "शुभ विवाह ✦ RAJPUT PALACE",
+                  previewCouple: "मेल्विन ❦ मीनू",
+                  gradientBar: "from-rose-700 via-amber-500 to-rose-700",
+                  previewBg: "bg-[#fdf6ee] border-rose-300/80",
+                  colorDots: ["#9f1239", "#f59e0b", "#7f1d1d", "#fffbeb"],
+                  description:
+                    "Rich maroon & royal gold, Rajput Jharokha palace arches, royal crest, Sanskrit shlokas.",
+                  isRecommended: form.ceremonyTemplate === "hindu",
+                },
+                {
+                  key: "tamil-muhurtham",
+                  title: "Tamil Subha Muhurtham",
+                  category: "hindu",
+                  categoryLabel: "🕉️ Tamil Hindu",
+                  languageLabel: "Tamil (தமிழ்)",
+                  paletteName: "Kanjeevaram Crimson & Gold",
+                  previewSnippet: "சுப முஹூர்த்தம் ✦ TEMPLE",
+                  previewCouple: "மெல்வின் ✦ மீனு",
+                  gradientBar: "from-red-600 via-yellow-500 to-red-600",
+                  previewBg: "bg-[#fef9f3] border-red-300/80",
+                  colorDots: ["#b91c1c", "#eab308", "#7f1d1d", "#fef3c7"],
+                  description:
+                    "Deep crimson & Kanjeevaram turmeric gold, temple Gopuram motifs, Kolam-inspired patterns.",
+                  isRecommended: form.ceremonyTemplate === "hindu",
+                },
+                {
+                  key: "mughal-nikah",
+                  title: "Mughal Imperial Nikah",
+                  category: "nikah",
+                  categoryLabel: "☪️ Muslim / Nikah",
+                  languageLabel: "Urdu (اردو) • Quran 78:8",
+                  paletteName: "Imperial Emerald & Gold",
+                  previewSnippet: "نکاح مبارک ✦ BISMILLAH",
+                  previewCouple: `${form.brideName || "Bride"} ☽ ${form.groomName || "Groom"}`,
+                  gradientBar: "from-emerald-700 via-emerald-500 to-emerald-700",
+                  previewBg: "bg-[#f5f7f0] border-emerald-300/80",
+                  colorDots: ["#047857", "#059669", "#d97706", "#ecfdf5"],
+                  description:
+                    "Emerald greens, crescent motifs, Islamic calligraphy elegance, Quranic blessing (78:8).",
+                  isRecommended: form.ceremonyTemplate === "nikah",
+                },
+                {
+                  key: "punjabi-celebration",
+                  title: "Royal Punjabi Celebration",
+                  category: "sikh",
+                  categoryLabel: "☬ Sikh / Punjabi",
+                  languageLabel: "Gurmukhi (ਪੰਜਾਬੀ)",
+                  paletteName: "Royal Magenta & Mustard",
+                  previewSnippet: "ਸ਼ੁਭ ਵਿਆਹ ✦ ANAND KARAJ",
+                  previewCouple: `${form.brideName || "Bride"} 💍 ${form.groomName || "Groom"}`,
+                  gradientBar: "from-fuchsia-500 via-orange-400 to-fuchsia-600",
+                  previewBg: "bg-[#fefcf5] border-fuchsia-300/80",
+                  colorDots: ["#c026d3", "#ea580c", "#eab308", "#fdf4ff"],
+                  description:
+                    "Vibrant Phulkari geometric patterns, festive Ek Onkar blessing, Anand Karaj energy.",
+                  isRecommended: form.ceremonyTemplate === "sikh",
+                },
+                {
+                  key: "elegant-minimal",
+                  title: "Bespoke Modern Minimalist",
+                  category: "secular",
+                  categoryLabel: "🕊️ Contemporary",
+                  languageLabel: "Universal Editorial",
+                  paletteName: "Warm Stone & Neutral",
+                  previewSnippet: "CONTEMPORARY ✦ BESPOKE",
+                  previewCouple: `${form.brideName || "Bride"} & ${form.groomName || "Groom"}`,
+                  gradientBar: "from-stone-400 via-stone-600 to-stone-400",
+                  previewBg: "bg-[#faf8f5] border-stone-200",
+                  colorDots: ["#292524", "#78716c", "#d6d3d1", "#fafaf9"],
+                  description:
+                    "Refined quiet luxury typography, tranquil whitespace, modern editorial layouts.",
+                  isRecommended:
+                    form.ceremonyTemplate === "secular" || form.ceremonyTemplate === "christian",
+                },
+              ]
+                .filter((theme) => {
+                  if (themeFilter === "all") return true;
+                  return theme.category === themeFilter;
+                })
+                .map((theme) => {
+                  const isSelected = form.themeKey === theme.key;
+
+                  return (
+                    <div
+                      key={theme.key}
+                      onClick={() => handleFieldChange("themeKey", theme.key)}
+                      className={`p-5 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between relative overflow-hidden ${
+                        isSelected
+                          ? "border-stone-900 bg-stone-50/70 ring-2 ring-stone-900/10 shadow-lg translate-y-[-2px]"
+                          : "border-stone-200 hover:border-stone-300 bg-white hover:shadow-md"
+                      }`}
+                    >
+                      <div>
+                        {/* Top Badge Row */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-100 text-stone-700">
+                            {theme.categoryLabel}
+                          </span>
+
+                          {theme.isRecommended && (
+                            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                              <Sparkles className="w-2.5 h-2.5 text-amber-700" /> Recommended
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Live Mini Card Preview */}
+                        <div
+                          className={`h-32 rounded-2xl border-2 flex flex-col items-center justify-center p-3 text-center mb-3 relative overflow-hidden shadow-inner ${theme.previewBg}`}
+                        >
+                          <div
+                            className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${theme.gradientBar}`}
+                          />
+                          <span className="font-serif font-bold text-sm sm:text-base text-stone-900 line-clamp-1">
+                            {theme.previewCouple}
+                          </span>
+                          <span className="text-[9px] tracking-widest uppercase text-stone-600 font-semibold mt-1.5">
+                            {theme.previewSnippet}
+                          </span>
+                          <div className="mt-2 text-[9px] uppercase tracking-wider text-stone-400 font-mono">
+                            {form.weddingDate || "DECEMBER 20, 2026"}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-stone-900 text-base leading-snug">
+                            {theme.title}
+                          </h3>
+                          <div className="text-[11px] text-amber-800 font-medium">
+                            {theme.languageLabel}
+                          </div>
+                          <p className="text-[11px] text-stone-500 leading-relaxed pt-1">
+                            {theme.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Bottom Palette and Active State */}
+                      <div className="pt-3 mt-3 border-t border-stone-100 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mr-1">
+                            Palette:
+                          </span>
+                          <div className="flex -space-x-1">
+                            {theme.colorDots.map((dotColor, idx) => (
+                              <div
+                                key={idx}
+                                className="w-3.5 h-3.5 rounded-full border border-white shadow-xs"
+                                style={{ backgroundColor: dotColor }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {isSelected ? (
+                          <span className="text-[11px] font-bold text-stone-900 flex items-center gap-1">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Active
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-stone-400 group-hover:text-stone-600">
+                            Select &rarr;
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -1136,7 +1429,22 @@ export function InvitationBuilder({ initialData }: InvitationBuilderProps) {
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 space-y-4">
+            <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 space-y-5">
+              {form.weddingDate && (
+                <div className="pt-1 pb-3 border-b border-stone-200">
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-500 block text-center mb-3">
+                    Guest Countdown Preview
+                  </span>
+                  <div className="max-w-md mx-auto">
+                    <Countdown
+                      targetDate={form.weddingDate}
+                      weddingTime={form.weddingTime}
+                      accentClass="text-amber-800"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xs text-stone-500 uppercase tracking-wider block">

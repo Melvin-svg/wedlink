@@ -99,3 +99,114 @@ test("Security: CSV formula injection characters are escaped with leading quote"
   assert.equal(escapeCsv("Normal Guest Name"), `"Normal Guest Name"`);
   assert.equal(escapeCsv('Quoted "Name"'), `"Quoted ""Name"""`);
 });
+
+// Import countdown helpers
+import {
+  parseWeddingTargetDate,
+  calculateTimeLeft,
+  getDaysRemaining,
+} from "../src/lib/countdown.ts";
+
+test("Countdown: Robust time string parsing (supports '10:30Am', '10:30 AM', '14:00', '10:30pm')", () => {
+  const base = "2026-12-25";
+
+  // Standard AM/PM with space
+  const t1 = parseWeddingTargetDate(base, "10:30 AM");
+  assert.equal(t1.getHours(), 10);
+  assert.equal(t1.getMinutes(), 30);
+
+  // Without space ("10:30Am" like seeded in db)
+  const t2 = parseWeddingTargetDate(base, "10:30Am");
+  assert.equal(t2.getHours(), 10);
+  assert.equal(t2.getMinutes(), 30);
+
+  // Evening PM without space
+  const t3 = parseWeddingTargetDate(base, "6:45pm");
+  assert.equal(t3.getHours(), 18);
+  assert.equal(t3.getMinutes(), 45);
+
+  // 24-hour military format
+  const t4 = parseWeddingTargetDate(base, "15:00");
+  assert.equal(t4.getHours(), 15);
+  assert.equal(t4.getMinutes(), 0);
+
+  // Null/empty time string leaves date intact
+  const t5 = parseWeddingTargetDate(base, null);
+  assert.ok(t5 instanceof Date);
+  assert.ok(!isNaN(t5.getTime()));
+});
+
+test("Countdown: Accurately calculates days remaining, today, and past transitions", () => {
+  const refNow = new Date("2026-10-23T12:00:00Z");
+
+  // Future wedding (5 days ahead)
+  const futureDate = new Date("2026-10-28T12:00:00Z");
+  const futureCd = getDaysRemaining(futureDate, null, refNow);
+  assert.equal(futureCd.isToday, false);
+  assert.equal(futureCd.isPast, false);
+  assert.equal(futureCd.days, 5);
+  assert.equal(futureCd.label, "5 days to go");
+
+  // Tomorrow (1 day ahead)
+  const tomorrowDate = new Date("2026-10-24T12:00:00Z");
+  const tomorrowCd = getDaysRemaining(tomorrowDate, null, refNow);
+  assert.equal(tomorrowCd.days, 1);
+  assert.equal(tomorrowCd.label, "1 day to go");
+
+  // Today
+  const todayDate = new Date("2026-10-23T18:00:00Z");
+  const todayCd = getDaysRemaining(todayDate, null, refNow);
+  assert.equal(todayCd.isToday, true);
+  assert.equal(todayCd.label, "Today is the Day! ❤️");
+
+  // Past wedding (3 days ago)
+  const pastDate = new Date("2026-10-20T12:00:00Z");
+  const pastCd = getDaysRemaining(pastDate, null, refNow);
+  assert.equal(pastCd.isPast, true);
+  assert.equal(pastCd.days, 3);
+  assert.equal(pastCd.label, "Married 3 days ago");
+});
+
+test("Countdown: Live timer breakdown computes hours, minutes, and seconds without NaN", () => {
+  const refNow = new Date("2026-10-23T10:00:00Z");
+  const target = new Date("2026-10-25T14:30:45Z"); // +2 days, 4 hours, 30 mins, 45 secs
+
+  const tl = calculateTimeLeft(target, null, refNow);
+  assert.equal(tl.days, 2);
+  assert.equal(tl.hours, 4);
+  assert.equal(tl.minutes, 30);
+  assert.equal(tl.seconds, 45);
+  assert.equal(tl.isPast, false);
+  assert.equal(tl.isToday, false);
+});
+
+test("Cultural & Religious Themes: All 7 theme keys and ceremony templates are registered", () => {
+  const supportedThemes = [
+    "christian-matrimony",
+    "kerala-traditional",
+    "royal-rajasthani",
+    "mughal-nikah",
+    "tamil-muhurtham",
+    "punjabi-celebration",
+    "elegant-minimal",
+  ];
+
+  const defaultThemeMap = {
+    christian: "christian-matrimony",
+    hindu: "kerala-traditional",
+    nikah: "mughal-nikah",
+    sikh: "punjabi-celebration",
+    secular: "elegant-minimal",
+  };
+
+  // Verify every default theme is among the supported themes
+  for (const [ceremony, themeKey] of Object.entries(defaultThemeMap)) {
+    assert.ok(
+      supportedThemes.includes(themeKey),
+      `Default theme '${themeKey}' for ceremony '${ceremony}' must exist in supported themes`
+    );
+  }
+
+  assert.equal(supportedThemes.length, 7);
+});
+

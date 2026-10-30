@@ -23,8 +23,12 @@ const malayalam = Noto_Serif_Malayalam({
   display: "swap",
 });
 
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(appUrl),
   title: {
     default: "WedLink — Your wedding. One private link. Every memory.",
     template: "%s · WedLink",

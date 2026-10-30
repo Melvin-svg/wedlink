@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   // Tailwind CSS v4 is compiled through the Turbopack loader (there is no PostCSS config).
   turbopack: {
     rules: {

@@ -17,7 +17,9 @@ import {
   Clock,
   ArrowRight,
   HeartHandshake,
+  Hourglass,
 } from "lucide-react";
+import { getDaysRemaining } from "@/lib/countdown";
 
 export const metadata = {
   title: "Creator Dashboard | WedLink",
@@ -54,6 +56,18 @@ export default async function DashboardPage() {
     0
   );
 
+  // Find nearest upcoming wedding countdown
+  const upcomingWeddings = invitations
+    .filter((inv) => inv.weddingDate)
+    .map((inv) => ({
+      ...inv,
+      countdown: getDaysRemaining(inv.weddingDate, inv.weddingTime),
+    }))
+    .filter((inv) => inv.countdown && !inv.countdown.isPast)
+    .sort((a, b) => (a.countdown?.days ?? 9999) - (b.countdown?.days ?? 9999));
+
+  const nearestUpcoming = upcomingWeddings[0] || null;
+
   return (
     <div className="min-h-screen bg-[#faf8f5] text-stone-900 flex flex-col font-sans">
       <Navbar />
@@ -83,7 +97,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
           <div className="bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs hover:shadow-md transition">
             <div className="flex items-center justify-between text-stone-500 mb-2">
               <span className="text-xs uppercase tracking-wider font-bold">
@@ -95,6 +109,31 @@ export default async function DashboardPage() {
               {invitations.length}
             </div>
             <p className="text-xs text-stone-500 mt-1">Active invitations &amp; drafts</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs hover:shadow-md transition">
+            <div className="flex items-center justify-between text-stone-500 mb-2">
+              <span className="text-xs uppercase tracking-wider font-bold">
+                Next Celebration
+              </span>
+              <Hourglass className="w-4 h-4 text-amber-800" />
+            </div>
+            <div className="text-3xl font-serif font-bold text-amber-900 truncate">
+              {nearestUpcoming?.countdown ? (
+                nearestUpcoming.countdown.isToday ? (
+                  "Today! ❤️"
+                ) : (
+                  `${nearestUpcoming.countdown.days} Days`
+                )
+              ) : (
+                "—"
+              )}
+            </div>
+            <p className="text-xs text-stone-500 mt-1 truncate">
+              {nearestUpcoming
+                ? `${nearestUpcoming.brideName} & ${nearestUpcoming.groomName}`
+                : "No upcoming dates"}
+            </p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs hover:shadow-md transition">
@@ -222,7 +261,29 @@ export default async function DashboardPage() {
 
                   {/* Body Content */}
                   <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div className="space-y-2 text-xs text-stone-600">
+                    <div className="space-y-3 text-xs text-stone-600">
+                      {/* Countdown of Days Badge */}
+                      {inv.weddingDate && (() => {
+                        const cd = getDaysRemaining(inv.weddingDate, inv.weddingTime);
+                        if (!cd) return null;
+                        return (
+                          <div className="flex items-center">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide shadow-xs ${
+                                cd.isToday
+                                  ? "bg-rose-100 text-rose-800 border border-rose-300 animate-pulse"
+                                  : cd.isPast
+                                  ? "bg-stone-100 text-stone-600 border border-stone-200"
+                                  : "bg-amber-100/80 text-amber-900 border border-amber-300"
+                              }`}
+                            >
+                              <Hourglass className="w-3 h-3 text-amber-700 shrink-0" />
+                              <span>{cd.label}</span>
+                            </span>
+                          </div>
+                        );
+                      })()}
+
                       <p className="flex items-center gap-2 font-medium">
                         <Calendar className="w-4 h-4 text-amber-800 shrink-0" />
                         {inv.weddingDate

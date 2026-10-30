@@ -15,6 +15,11 @@ export async function getInvitationBaseUrl(): Promise<string> {
     return envUrl.replace(/\/$/, "");
   }
 
+  // Vercel Preview deployments provide dynamic host via VERCEL_URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
   // Get local Wi-Fi / LAN IP
   const lanIp = getLanIpAddress();
 

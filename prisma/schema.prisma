@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -31,8 +32,8 @@ model Invitation {
   bridePhotoUrl    String?
   groomPhotoUrl    String?
   description      String?
-  themeKey         String        @default("elegant-minimal") // "elegant-minimal" | "kerala-traditional"
-  ceremonyTemplate String        @default("christian") // christian | hindu | nikah | secular
+  themeKey         String        @default("elegant-minimal") // "christian-matrimony" | "kerala-traditional" | "royal-rajasthani" | "mughal-nikah" | "tamil-muhurtham" | "punjabi-celebration" | "elegant-minimal"
+  ceremonyTemplate String        @default("christian") // christian | hindu | nikah | sikh | secular
   defaultLanguage  String        @default("en")
   status           String        @default("draft") // draft | published
   privacyMode      String        @default("public") // public | password

@@ -144,26 +144,42 @@ export async function createInvitationAction(ceremonyTemplate = "christian") {
     let initialEvents: { name: string; ceremonyType: string; sortOrder: number; description: string }[] = [];
     if (ceremonyTemplate === "christian") {
       initialEvents = [
-        { name: "Holy Matrimony", ceremonyType: "Church Wedding", sortOrder: 0, description: "Solemn wedding ceremony and blessing at church" },
-        { name: "Wedding Reception", ceremonyType: "Reception", sortOrder: 1, description: "Celebratory dinner, toasts, cake cutting, and music" },
+        { name: "Holy Matrimony Nuptials", ceremonyType: "Church Ceremony", sortOrder: 0, description: "Solemn wedding service, exchange of holy vows, and blessing at church" },
+        { name: "Evening Grand Reception", ceremonyType: "Reception Dinner", sortOrder: 1, description: "Celebratory banquet, toasts, cake cutting, and fellowship" },
       ];
     } else if (ceremonyTemplate === "hindu") {
       initialEvents = [
-        { name: "Mehendi & Sangeet", ceremonyType: "Mehendi", sortOrder: 0, description: "Music, henna art, and family celebration" },
-        { name: "Muhurtham Ceremony", ceremonyType: "Muhurtham", sortOrder: 1, description: "Traditional wedding rituals and blessings" },
-        { name: "Grand Reception", ceremonyType: "Reception", sortOrder: 2, description: "Dinner and blessings with family and friends" },
+        { name: "Mehendi & Sangeet", ceremonyType: "Mehendi", sortOrder: 0, description: "Music, henna art, dance, and joyous family celebration" },
+        { name: "Muhurtham Ceremony", ceremonyType: "Muhurtham", sortOrder: 1, description: "Traditional wedding rituals, Kanyadaan, and sacred Mangalsutra blessing" },
+        { name: "Grand Reception & Feast", ceremonyType: "Reception", sortOrder: 2, description: "Grand banquet dinner and blessings with family and guests" },
       ];
     } else if (ceremonyTemplate === "nikah") {
       initialEvents = [
-        { name: "Nikah Ceremony", ceremonyType: "Nikah", sortOrder: 0, description: "Sacred Islamic marriage contract and prayers" },
-        { name: "Walima Feast", ceremonyType: "Reception", sortOrder: 1, description: "Joyous reception and traditional wedding feast" },
+        { name: "Sacred Nikah Solemnization", ceremonyType: "Nikah", sortOrder: 0, description: "Sacred Islamic marriage contract, Ijab-e-Qubool, and heartfelt Duas" },
+        { name: "Walima Feast", ceremonyType: "Reception", sortOrder: 1, description: "Joyous reception and traditional royal wedding feast" },
+      ];
+    } else if (ceremonyTemplate === "sikh") {
+      initialEvents = [
+        { name: "Sangeet & Jaago Night", ceremonyType: "Sangeet", sortOrder: 0, description: "Folk songs, Dhol beats, Jaago ceremony, and celebration" },
+        { name: "Sacred Anand Karaj", ceremonyType: "Anand Karaj", sortOrder: 1, description: "Sacred marriage ceremony and holy Laavan hymns at Gurdwara" },
+        { name: "Grand Wedding Reception", ceremonyType: "Reception", sortOrder: 2, description: "Celebratory dinner, toasts, and dancing with loved ones" },
       ];
     } else {
       initialEvents = [
-        { name: "Wedding Ceremony", ceremonyType: "Ceremony", sortOrder: 0, description: "Exchange of vows and celebration" },
-        { name: "Celebration Party", ceremonyType: "Reception", sortOrder: 1, description: "Dinner, dancing, and memories" },
+        { name: "Wedding Ceremony", ceremonyType: "Ceremony", sortOrder: 0, description: "Exchange of vows and personalized ceremony" },
+        { name: "Celebration Party", ceremonyType: "Reception", sortOrder: 1, description: "Dinner, dancing, cocktails, and memories" },
       ];
     }
+
+    const defaultThemeMap: Record<string, string> = {
+      christian: "christian-matrimony",
+      hindu: "kerala-traditional",
+      nikah: "mughal-nikah",
+      sikh: "punjabi-celebration",
+      secular: "elegant-minimal",
+    };
+
+    const initialThemeKey = defaultThemeMap[ceremonyTemplate] || "elegant-minimal";
 
     const invitation = await prisma.invitation.create({
       data: {
@@ -172,7 +188,7 @@ export async function createInvitationAction(ceremonyTemplate = "christian") {
         brideName: "Bride",
         groomName: "Groom",
         ceremonyTemplate,
-        themeKey: ceremonyTemplate === "hindu" ? "kerala-traditional" : "elegant-minimal",
+        themeKey: initialThemeKey,
         status: "draft",
         events: {
           create: initialEvents,
