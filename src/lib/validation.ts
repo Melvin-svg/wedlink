@@ -69,7 +69,9 @@ export const StoryItemSchema = z.object({
 
 export const GalleryItemSchema = z.object({
   id: z.string().optional(),
-  imageUrl: z.string().url("Valid image URL required"),
+  imageUrl: z
+    .string()
+    .refine((v) => v.startsWith("https://") || v.startsWith("/uploads/"), "Valid image URL required"),
   caption: z.string().optional().nullable(),
   category: z.string().default("engagement"),
   sortOrder: z.number().default(0),

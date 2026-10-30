@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { put } from "@vercel/blob";
 
 export interface UploadResult {
   url: string;
@@ -73,6 +74,24 @@ export async function saveLocalUpload(file: File): Promise<UploadResult> {
   // Generate safe unique filename using detected extension (NEVER trust user-supplied extension)
   const hash = crypto.randomBytes(16).toString("hex");
   const safeFilename = `${Date.now()}-${hash}${detected.ext}`;
+
+  // Vercel's filesystem is read-only, so use Blob storage whenever its token is configured
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(`uploads/${safeFilename}`, buffer, {
+      access: "public",
+      contentType: detected.mime,
+    });
+    return {
+      url: blob.url,
+      filename: safeFilename,
+      sizeBytes: file.size,
+      mimeType: detected.mime,
+    };
+  }
+
+  if (process.env.VERCEL) {
+    throw new Error("Image storage is not configured. Set BLOB_READ_WRITE_TOKEN.");
+  }
 
   const uploadsDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadsDir, { recursive: true });
